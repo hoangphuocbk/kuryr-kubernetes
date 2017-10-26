@@ -256,7 +256,7 @@ function configure_neutron_defaults {
 function get_hyperkube_container_cacert_setup_dir {
     case "$1" in
         1.[0-3].*) echo "/data";;
-        *) echo "/srv/kubernetes"
+        *) echo "${HOME}/data/hyperkube"
     esac
 }
 
@@ -316,7 +316,7 @@ function run_k8s_api {
 
     run_container kubernetes-api \
         --net host \
-        --volume="${KURYR_HYPERKUBE_DATA_DIR}:/srv/kubernetes:rw" \
+        --volume="${KURYR_HYPERKUBE_DATA_DIR}:${HOME}/data/hyperkube:rw" \
         "${KURYR_HYPERKUBE_IMAGE}:${KURYR_HYPERKUBE_VERSION}" \
             /hyperkube apiserver \
                 --service-cluster-ip-range="${cluster_ip_range}" \
@@ -324,12 +324,12 @@ function run_k8s_api {
                 --insecure-port="${KURYR_K8S_API_PORT}" \
                 --etcd-servers="${KURYR_ETCD_ADVERTISE_CLIENT_URL}" \
                 --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,ResourceQuota \
-                --client-ca-file=/srv/kubernetes/ca.crt \
-                --basic-auth-file=/srv/kubernetes/basic_auth.csv \
+                --client-ca-file=${HOME}/data/hyperkube/ca.crt \
+                --basic-auth-file=${HOME}/data/hyperkube/basic_auth.csv \
                 --min-request-timeout=300 \
-                --tls-cert-file=/srv/kubernetes/server.cert \
-                --tls-private-key-file=/srv/kubernetes/server.key \
-                --token-auth-file=/srv/kubernetes/known_tokens.csv \
+                --tls-cert-file=${HOME}/data/hyperkube/server.cert \
+                --tls-private-key-file=${HOME}/data/hyperkube/server.key \
+                --token-auth-file=${HOME}/data/hyperkube/known_tokens.csv \
                 --allow-privileged=true \
                 --v=2 \
                 --logtostderr=true
@@ -341,12 +341,12 @@ function run_k8s_controller_manager {
 
     run_container kubernetes-controller-manager \
         --net host \
-        --volume="${KURYR_HYPERKUBE_DATA_DIR}:/srv/kubernetes:rw" \
+        --volume="${KURYR_HYPERKUBE_DATA_DIR}:${HOME}/data/hyperkube:rw" \
         "${KURYR_HYPERKUBE_IMAGE}:${KURYR_HYPERKUBE_VERSION}" \
             /hyperkube controller-manager \
                 --master="$KURYR_K8S_API_URL" \
-                --service-account-private-key-file=/srv/kubernetes/server.key \
-                --root-ca-file=/srv/kubernetes/ca.crt \
+                --service-account-private-key-file=${HOME}/data/hyperkube/server.key \
+                --root-ca-file=${HOME}/data/hyperkube/ca.crt \
                 --min-resync-period=3m \
                 --v=2 \
                 --logtostderr=true
@@ -358,7 +358,7 @@ function run_k8s_scheduler {
 
     run_container kubernetes-scheduler \
         --net host \
-        --volume="${KURYR_HYPERKUBE_DATA_DIR}:/srv/kubernetes:rw" \
+        --volume="${KURYR_HYPERKUBE_DATA_DIR}:${HOME}/data/hyperkube:rw" \
         "${KURYR_HYPERKUBE_IMAGE}:${KURYR_HYPERKUBE_VERSION}" \
             /hyperkube scheduler \
                 --master="$KURYR_K8S_API_URL" \
