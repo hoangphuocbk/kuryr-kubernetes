@@ -194,7 +194,7 @@ function create_k8s_subnet {
 
     subnet_params+="--ip-version 4 "
     subnet_params+="--no-dhcp --gateway none "
-    subnet_params+="--shared"
+    subnet_params+="--share "
     subnet_params+="--subnet-pool $subnetpool_id "
 
     local net_id
